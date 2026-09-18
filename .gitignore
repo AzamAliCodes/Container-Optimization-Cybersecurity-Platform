@@ -1,0 +1,26 @@
+# --- Local-only docs / working notes ---
+agentlog.md
+PRD-*.md
+*.local.md
+
+# --- Runtime state ---
+orchestrator/.state/
+*.log
+
+# --- Benchmark scratch output (raw runs; curated results live in docs/) ---
+benchmark/reports/
+benchmark-output/
+**/__pycache__/
+*.pyc
+
+# --- Local env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

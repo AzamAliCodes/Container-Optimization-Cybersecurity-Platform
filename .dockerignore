@@ -1,0 +1,6 @@
+# Never let benchmark scratch output or git metadata enter any build context.
+.git
+benchmark-output
+benchmark/reports
+**/__pycache__
+*.deb
