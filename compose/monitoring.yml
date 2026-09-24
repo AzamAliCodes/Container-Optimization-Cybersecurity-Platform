@@ -1,0 +1,90 @@
+# Phase 4 — monitoring stack: cAdvisor → Prometheus → Grafana (FR-11, FR-12).
+# ---------------------------------------------------------------------------
+# Runs ALONGSIDE session pairs (compose/session.yml), never inside them.
+# Session containers need no network attachment to this stack: cAdvisor reads
+# the host Docker daemon + /sys/fs/cgroup directly, so per-session metrics
+# flow with zero coupling to learner netns isolation (NFR-03 preserved).
+#
+# Usage:
+#   docker compose -f compose/monitoring.yml up -d
+#   Grafana: http://localhost:3000 (admin/admin) → "Platform" folder,
+#            dashboard "Per-Session Resource Usage (FR-12)", $session filter.
+#   Prometheus: http://localhost:9090 (rules live at /etc/prometheus/rules).
+#
+# Images are digest-pinned via images/digests.env (FR-02 pattern extended to
+# platform services; update digests.env with `docker buildx imagetools inspect`).
+name: platform-monitoring
+
+services:
+  cadvisor:
+    image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.49.1}
+    # PRD §10.5 tooling stack names cAdvisor explicitly; --privileged is
+    # confined to this operator-run infra service (never used for learner
+    # sessions, where NFR-03 forbids it). Required for full cgroup telemetry.
+    privileged: true
+    devices: ["/dev/kmsg"]
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    command:
+      - --housekeeping_interval=10s        # aligns w/ scrape interval → NFR-05 <15s
+      - --docker_only=true                 # only container series, not every systemd unit
+      - --store_container_labels=false     # export ALL labels incl. session.id
+      - --whitelisted_container_labels=session.id,bundle,role
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  prometheus:
+    image: ${PROMETHEUS_IMAGE:-prom/prometheus:v2.53.0}
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/rules:/etc/prometheus/rules:ro
+      - prom-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d   # NFR-07 storage budget: ~<2 GB at 10s/series on a lab host
+      - --web.enable-lifecycle              # allow config reload without restart
+    ports:
+      - "127.0.0.1:9090:9090"               # host-local only; ops reach via Grafana
+    depends_on:
+      cadvisor:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  grafana:
+    image: ${GRAFANA_IMAGE:-grafana/grafana:11.1.0}
+    volumes:
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards/json:ro
+      - graf-data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASS:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"                          # FR-12: ops visibility without host SSH
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  prom-data:
+  graf-data:

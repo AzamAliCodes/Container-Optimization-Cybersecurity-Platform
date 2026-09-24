@@ -1,0 +1,71 @@
+# Phase 1 — local session-pair environment (FR-17, NFR-08).
+# ---------------------------------------------------------------------------
+# Reproduces ONE learner session pair (attacker bundle + target) with the SAME
+# digest-pinned images and the SAME resource limits as production provisioning.
+# This file is the reference for the orchestrator's `docker run` flags; CI
+# (ci/smoke.sh) asserts parity between the two (NFR-08).
+#
+# Limits come from orchestrator/limits.env (single source of truth, Phase 2):
+#   set -a; . orchestrator/limits.env; set +a
+#   docker compose --env-file orchestrator/limits.env -f compose/session.yml up -d
+# The VAR-with-default fallbacks below equal that file's current values; CI
+# parity (smoke.sh step 7) asserts defaults == limits.env so they cannot drift.
+#
+# Usage:
+#   ./images/build.sh all                                   # pre-build images (FR-04 — compose never builds)
+#   docker compose -f compose/session.yml up -d             # bring up one session pair
+#   BUNDLE=network-recon docker compose -f compose/session.yml up -d   # swap the attacker bundle
+#   docker compose -f compose/session.yml down
+#
+# LIMIT-PARITY-TABLE (single source of truth for both this file and ci/smoke.sh):
+#   attacker: memory=512m  memory-swap=768m  cpus=1.0   pids-limit=100
+#   target  : memory=256m  memory-swap=384m  cpus=0.5   pids-limit=50
+# [ASSUMPTION] values sized from Phase 0 profiling (legacy idle pair ~88 MiB);
+# to be re-validated against Phase 2 orchestrator defaults — NFR-08 parity test gates it.
+name: platform-session
+
+services:
+  attacker:
+    image: ${REGISTRY:-platform}/${BUNDLE:-web-exploitation}:${VERSION:-phase1}
+    container_name: sess-attacker
+    networks: [session]
+    # FR-06-equivalent ceilings (deploy.resources works on swarm AND compose v2 non-swarm via mem_limit-style translation; we use explicit keys below for portability)
+    mem_limit: ${ATTACKER_MEMORY:-512m}
+    memswap_limit: ${ATTACKER_MEMORY_SWAP:-768m}
+    cpus: ${ATTACKER_CPUS:-1.0}
+    pids_limit: ${ATTACKER_PIDS_LIMIT:-100}
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "7681"]   # FR-07: ttyd port responds
+      interval: 2s
+      timeout: 2s
+      retries: 20
+      start_period: 3s
+    # FR-18 per-lab SSH opt-in (default OFF — daemon never starts unless set to "1")
+    environment:
+      LAB_SSH_ENABLED: "${LAB_SSH_ENABLED:-0}"
+    ports:
+      - "127.0.0.1:${ATTACKER_TTYD_PORT:-7681}:7681"   # web terminal to the learner browser
+
+  target:
+    image: ${REGISTRY:-platform}/target:${VERSION:-phase1}
+    container_name: sess-target
+    networks: [session]
+    mem_limit: ${TARGET_MEMORY:-256m}
+    memswap_limit: ${TARGET_MEMORY_SWAP:-384m}
+    cpus: ${TARGET_CPUS:-0.5}
+    pids_limit: ${TARGET_PIDS_LIMIT:-50}
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "8080"]   # FR-07: app port responds
+      interval: 2s
+      timeout: 2s
+      retries: 20
+      start_period: 3s
+    expose:
+      - "8080"                                          # reachable only from the session network
+
+networks:
+  # NFR-03: per-session isolated network. Compose scopes it to this project;
+  # production uses one `docker network create` per session (orchestrator path).
+  session:
+    driver: bridge
+    name: sess-net
