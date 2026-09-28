@@ -1,0 +1,41 @@
+# Phase 4 — Prometheus scrape config (FR-11).
+# ---------------------------------------------------------------------------
+# Single host, single job: cAdvisor exports per-container CPU / memory /
+# network / pids metrics; Prometheus scrapes cAdvisor every 10s so that a new
+# session's containers appear in the TSDB well inside the NFR-05 budget
+# ("100% of running sessions emit metrics within 15s of container start").
+# Worst case at these settings ≈ first scrape tick (≤10s) + staleness margin;
+# tighten scrape_interval to 5s if strict 15s is required in production.
+#
+# Session attribution: containers are started by orchestrator/provision.sh with
+# --label session.id=<id>, which cAdvisor re-exports on every metric as
+# container_label_session_id — dashboards and alerts group by it directly, so
+# no relabeling step is needed (decision: keep config minimal, FR-11 exit
+# criterion "metrics labeled by session ID" is satisfied natively).
+global:
+  scrape_interval: 10s          # override via SCRAPE_INTERVAL in compose/monitoring.yml
+  evaluation_interval: 10s
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor:8080"]
+    metric_relabel_configs:
+      # Drop high-cardinality / unused series to keep the TSDB lean on a shared
+      # lab host (NFR storage budget): per-device class/id network stats and
+      # filesystem metrics we never chart or alert on.
+      - source_labels: [__name__]
+        regex: "container_(network_class_bytes|network_device_rx_queued_packets|network_device_tx_dropped|fs_[a-z_]+)"
+        action: drop
+      # Copy the docker label onto a compact `session` series label as well
+      # (container_label_session_id remains authoritative; this is convenience
+      # for hand-written queries).
+      - source_labels: [container_label_session_id]
+        target_label: session
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

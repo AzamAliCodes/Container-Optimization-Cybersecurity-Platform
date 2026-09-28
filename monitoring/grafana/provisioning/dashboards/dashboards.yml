@@ -1,0 +1,11 @@
+# Grafana dashboard provisioning (FR-12) — loads dashboards/*.json on boot.
+apiVersion: 1
+providers:
+  - name: "platform"
+    orgId: 1
+    folder: "Platform"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

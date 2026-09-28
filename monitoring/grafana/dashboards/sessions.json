@@ -1,0 +1,288 @@
+{
+  "title": "Per-Session Resource Usage (FR-12)",
+  "uid": "platform-sessions",
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "tags": [
+    "platform",
+    "sessions",
+    "phase4"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "label": "Session ID",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "query": "label_values(container_label_session_id)",
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Active sessions",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "count(count by (container_label_session_id) (container_last_seen{name=~\"sess-.*-attacker\"} > 0))",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "description": "Running attacker containers seen by cAdvisor in the last scrape (NFR-05 coverage base)."
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total pair RAM (working set)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{name=~\"sess-.*\", container_label_session_id=~\"$session\"})",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "description": "Sum of both containers across selected sessions."
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Total pair CPU",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"sess-.*\", container_label_session_id=~\"$session\"}[2m])) * 100",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "description": "Aggregate steady CPU across selected sessions (KPI \u00a75: \u22641%/session idle)."
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total pids",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(container_processes{name=~\"sess-.*\", container_label_session_id=~\"$session\"})",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "description": "Live process count \u2014 FR-18 minimal-idle-set watchdog."
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Memory working set per container",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "expr": "container_memory_working_set_bytes{name=~\"sess-.*\", container_label_session_id=~\"$session\"}",
+          "refId": "A",
+          "legendFormat": "{{name}} (session {{container_label_session_id}})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Filtered by session ID via the $session variable above."
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "CPU % per container",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{name=~\"sess-.*\", container_label_session_id=~\"$session\"}[2m]) * 100",
+          "refId": "A",
+          "legendFormat": "{{name}} (session {{container_label_session_id}})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Filtered by session ID via the $session variable above."
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Network rx/tx rate (idle-detection signal)",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 12
+      },
+      "targets": [
+        {
+          "expr": "rate(container_network_receive_bytes_total{name=~\"sess-.*\", container_label_session_id=~\"$session\"}[1m])",
+          "refId": "A",
+          "legendFormat": "rx {{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Filtered by session ID via the $session variable above."
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Network tx rate",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 12
+      },
+      "targets": [
+        {
+          "expr": "rate(container_network_transmit_bytes_total{name=~\"sess-.*\", container_label_session_id=~\"$session\"}[1m])",
+          "refId": "A",
+          "legendFormat": "tx {{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Filtered by session ID via the $session variable above."
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Processes per container vs pids limit",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "targets": [
+        {
+          "expr": "container_processes{name=~\"sess-.*\", container_label_session_id=~\"$session\"}",
+          "refId": "A",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "description": "Filtered by session ID via the $session variable above."
+    }
+  ]
+}

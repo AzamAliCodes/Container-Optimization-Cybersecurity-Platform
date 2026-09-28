@@ -1,0 +1,51 @@
+# Phase 4 — alerting rules for §5 KPI thresholds and NFR-05 coverage.
+# Mounted read-only into Prometheus (compose/monitoring.yml rule_files).
+groups:
+  - name: session-coverage
+    rules:
+      # NFR-05: every RUNNING session must emit metrics. Compares attacker
+      # containers currently running (cadvisor reports them while alive) with
+      # those seen ≤60s ago; a gap means scrape discovery missed a session.
+      - alert: SessionMetricsMissing
+        expr: >
+          count(count by (name) (container_last_seen{name=~"sess-.*-attacker"} > 0)) -
+          count(count by (name) (container_last_seen{name=~"sess-.*-attacker"} offset 1m) > 60)
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Running session(s) not emitting Prometheus metrics (NFR-05)"
+
+      # FR-09 dependency: the idle detector reads network counters. If they
+      # vanish from the TSDB, monitoring-driven idle detection is blind.
+      - alert: NetworkCountersAbsent
+        expr: absent(container_network_receive_bytes_total{name=~"sess-.*"})
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No per-session network I/O metrics — idle detection blind"
+
+  - name: kpi-thresholds
+    rules:
+      # §5 KPI: idle RAM per session-pair ≤ 250 MB (working set, both containers).
+      - alert: PairIdleMemoryHigh
+        expr: >
+          sum by (container_label_session_id) (
+            container_memory_working_set_bytes{name=~"sess-.*"}
+          ) > 250 * 1024 * 1024
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Session pair over 250 MB working-set KPI (§5)"
+
+      # §5 KPI: steady CPU per attacker container ≤ 1% (2m rate window).
+      - alert: SessionCpuHigh
+        expr: >
+          rate(container_cpu_usage_seconds_total{name=~"sess-.*-attacker"}[2m]) * 100 > 1
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Attacker container above 1% steady CPU KPI for 10m (§5)"
