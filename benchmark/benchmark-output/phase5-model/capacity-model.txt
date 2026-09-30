@@ -1,0 +1,87 @@
+# Regenerate: python3 benchmark/model.py
+host (measured 2026-10-01)",
+      "vcpu": 8,
+      "ram_gib": 8,
+      "disk_gib": 60
+    },
+    "legacy": {
+      "bounds": {
+        "ram": 14,
+        "cpu": 18,
+        "pids": 40,
+        "disk": 116
+      },
+      "max_pairs": 14,
+      "binding_constraint": "ram",
+      "coldstart_at_max_ms": 32100,
+      "coldstart_sla_met": false
+    },
+    "optimized": {
+      "bounds": {
+        "ram": 8,
+        "cpu": 185,
+        "pids": 40,
+        "disk": 1011
+      },
+      "max_pairs": 8,
+      "binding_constraint": "ram",
+      "coldstart_at_max_ms": 3700,
+      "coldstart_sla_met": true
+    },
+    "improvement_ratio": 0.6,
+    "meets_3x_target": false
+  },
+  "reference": {
+    "host": {
+      "name": "Reference host (PRD \u00a711 [ASSUMPTION])",
+      "vcpu": 8,
+      "ram_gib": 32,
+      "disk_gib": 250
+    },
+    "legacy": {
+      "bounds": {
+        "ram": 65,
+        "cpu": 18,
+        "pids": 40,
+        "disk": 602
+      },
+      "max_pairs": 18,
+      "binding_constraint": "cpu",
+      "coldstart_at_max_ms": 32700,
+      "coldstart_sla_met": false
+    },
+    "optimized": {
+      "bounds": {
+        "ram": 37,
+        "cpu": 185,
+        "pids": 40,
+        "disk": 4902
+      },
+      "max_pairs": 37,
+      "binding_constraint": "ram",
+      "coldstart_at_max_ms": 8050,
+      "coldstart_sla_met": true
+    },
+    "improvement_ratio": 2.1,
+    "meets_3x_target": false
+  }
+}
+host                                   legacy   bind  opt   bind  ratio  >=3x
+Dev host (measured 2026-10-01)             14    ram    8    ram   0.6x    no
+  bounds legacy={'ram': 14, 'cpu': 18, 'pids': 40, 'disk': 116} opt={'ram': 8, 'cpu': 185, 'pids': 40, 'disk': 1011}
+  cold-start @ max: legacy 32100 ms / opt 3700 ms (SLA 10000 ms: opt met=True)
+Reference host (PRD §11 [ASSUMPTION])      18    cpu   37    ram   2.1x    no
+  bounds legacy={'ram': 65, 'cpu': 18, 'pids': 40, 'disk': 602} opt={'ram': 37, 'cpu': 185, 'pids': 40, 'disk': 4902}
+  cold-start @ max: legacy 32700 ms / opt 8050 ms (SLA 10000 ms: opt met=True)
+
+==============================================================================
+CAVEAT — the 'dev' row is a MODEL PROJECTION, not a measurement.
+Measured on this same host 2026-10-01: legacy 37 pairs, optimized 62 pairs
+(1.7x). The model disagrees because it charges the legacy pair its measured
+working set (446.5 MiB, unlimited) while charging the optimized pair its
+COMMITTED QUOTA (768 MiB), and it assumes RAM is a hard ceiling. This host
+overcommits: macOS compressed ~3.4 GB and ran legacy to 37 pairs = ~16.5 GB
+of working set on an 8 GiB machine. On a host without overcommit the RAM
+bound would bind and the model would be the better predictor.
+For this host, trust docs/before-after-measurements.md over this projection.
+==============================================================================

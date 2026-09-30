@@ -1,0 +1,67 @@
+{
+  "measurement_date": "2026-10-01",
+  "host": {
+    "platform": "macOS (Darwin)",
+    "vcpu": 8,
+    "ram_gib": 8.0,
+    "docker_server_version": "29.8.0"
+  },
+  "images": {
+    "attacker": "platform/web-exploitation:phase1",
+    "target": "platform/target:phase1"
+  },
+  "limits_applied": {
+    "source": "orchestrator/limits.env",
+    "attacker": { "memory": "512m", "memory_swap": "768m", "cpus": "1.0", "pids_limit": 100 },
+    "target": { "memory": "256m", "memory_swap": "384m", "cpus": "0.5", "pids_limit": 50 }
+  },
+  "idle_resources": {
+    "method": "docker stats --no-stream, 6 samples at 8s intervals after 20s settle",
+    "attacker_ram_mib": { "samples": [17.71, 16.80, 17.91, 17.92, 17.13, 16.95], "median": 17.42, "mean": 17.40 },
+    "target_ram_mib": { "samples": [26.49, 26.92, 26.51, 26.70, 26.51, 26.88], "median": 26.60, "mean": 26.67 },
+    "pair_ram_mib_median_sum": 44.02,
+    "attacker_cpu_pct": { "samples": [1.90, 0.00, 1.58, 0.02, 0.16, 1.77], "max": 1.90 },
+    "target_cpu_pct": { "samples": [2.09, 6.76, 3.55, 0.03, 0.02, 0.01], "max": 6.76 },
+    "attacker_proc_count": 2,
+    "target_proc_count": 3,
+    "proc_count_method": "docker top <c> | tail -n +2 | wc -l"
+  },
+  "cold_start": {
+    "method": "wall clock from docker run -d until target docker healthcheck reports healthy (app port accepting)",
+    "runs_ms": [3771, 4248, 3673],
+    "median_ms": 3771,
+    "previous_claim_ms": 400,
+    "note": "previous figure measured State.Running only, not real readiness"
+  },
+  "concurrency": {
+    "method": "incremental pair start with limits.env quotas, then health check across all containers",
+    "checkpoints": [
+      { "pairs": 12, "containers": 24, "all_healthy": true },
+      { "pairs": 30, "containers": 60, "all_healthy": true },
+      { "pairs": 63, "containers": 125, "all_healthy": false, "note": "1 target still in Created state at sample time; 62 targets + 63 attackers running" }
+    ],
+    "max_pairs_verified_stable": 62,
+    "max_pairs_started": 63,
+    "mem_at_30_pairs_mib": 1308.4,
+    "attacker_avg_ram_mib_at_62_pairs": 17.6,
+    "target_avg_ram_mib_at_62_pairs": 27.6,
+    "previous_claims": { "demo_ui_8gb": "10-20 pairs", "live_report_8gb": 182, "model_py_8gb": 19 },
+    "note": "model.py budgets worst-case committed quota (768 MiB/pair) not measured working set (~44 MiB/pair), understating capacity ~17x"
+  },
+  "baseline_measurement": {
+    "status": "NOT MEASURED ON THIS HOST",
+    "reason": "no platform/attacker:legacy or platform/target:legacy image present; legacy-images/ requires rebuild",
+    "legacy_records_on_disk": {
+      "source": "benchmark/benchmark-output/run1/images.json",
+      "attacker_mib": 3464.8,
+      "target_mib": 910.5,
+      "caveat": "single un-replicated record; format does not match 01-images.sh output template, so likely hand-written"
+    }
+  },
+  "artifact_integrity": {
+    "swapped_run_labels": true,
+    "detail": "run-...-opt contains legacy images with sizes 'n/a'; run-...-legacy contains optimized images 326.2/261.8",
+    "run_completion": "neither directory contains summary.json or report.md, which run.sh always writes -> neither run completed",
+    "timestamp_order": "opt run (15:38:20Z) precedes legacy run (15:39:49Z) by 89s, impossible for before/after"
+  }
+}

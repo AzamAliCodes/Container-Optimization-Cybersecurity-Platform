@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-01",
+  "host": { "vcpu": 8, "ram_gib": 8.0, "docker_server": "29.8.0", "note": "macOS/Docker Desktop; memory compression observed" },
+  "protocol": "one pair, 60s settle, 8 samples at 8s intervals, docker stats --no-stream; identical for both sides",
+  "images": {
+    "legacy_attacker": { "source": "legacy-images/attacker/Dockerfile", "base": "kalilinux/kali-rolling", "size_mib": 3650 },
+    "legacy_target": { "source": "legacy-images/target/Dockerfile", "base": "debian:bookworm", "size_mib": 955 },
+    "opt_attacker": { "image": "platform/web-exploitation:phase1", "size_mib": 342 },
+    "opt_target": { "image": "platform/target:phase1", "size_mib": 275 }
+  },
+  "idle_footprint_mib": {
+    "legacy": { "attacker": 401.5, "target": 44.98, "pair_total": 446.48, "procs_attacker": 8, "procs_target": 7, "procs_total": 15 },
+    "optimized": { "attacker": 17.89, "target": 27.55, "pair_total": 45.44, "procs_attacker": 2, "procs_target": 3, "procs_total": 5 },
+    "pair_reduction_pct": 89.8,
+    "pair_ratio": 9.83,
+    "attacker_ratio": 22.4
+  },
+  "image_reduction_pct": { "attacker": 90.6, "target": 71.2 },
+  "concurrency": {
+    "legacy_max_stable_pairs": 37,
+    "optimized_max_stable_pairs": 62,
+    "ratio": 1.68,
+    "target": 3.0,
+    "meets_3x_target": false,
+    "legacy_functional_at_ceiling": true,
+    "note": "legacy containers have NO resource limits, so macOS compressed ~3.4GB and continued rather than failing. The 9.8x per-pair RAM advantage therefore does not translate linearly into sessions on this host. The 1.7x measured result is close to the capacity model's 2.1x projection."
+  },
+  "caveats": [
+    "Legacy pair was measured WITHOUT --memory/--cpus, reproducing the pre-optimization state exactly. That is the correct baseline but means it could borrow unbounded host memory.",
+    "Concurrency ceiling was found by starting pairs in a loop and observing where docker refuses; not a controlled ramp with the benchmark harness.",
+    "macOS memory compression is not reproducible on Linux; a host without overcommit would likely show a larger concurrency ratio."
+  ],
+  "provenance": "All values measured on this host on 2026-10-01. No value in this file is estimated or copied from another document."
+}

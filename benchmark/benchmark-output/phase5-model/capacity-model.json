@@ -1,0 +1,70 @@
+{
+  "dev": {
+    "host": {
+      "name": "Dev host (measured 2026-10-01)",
+      "vcpu": 8,
+      "ram_gib": 8,
+      "disk_gib": 60
+    },
+    "legacy": {
+      "bounds": {
+        "ram": 14,
+        "cpu": 18,
+        "pids": 40,
+        "disk": 116
+      },
+      "max_pairs": 14,
+      "binding_constraint": "ram",
+      "coldstart_at_max_ms": 32100,
+      "coldstart_sla_met": false
+    },
+    "optimized": {
+      "bounds": {
+        "ram": 8,
+        "cpu": 185,
+        "pids": 40,
+        "disk": 1011
+      },
+      "max_pairs": 8,
+      "binding_constraint": "ram",
+      "coldstart_at_max_ms": 3700,
+      "coldstart_sla_met": true
+    },
+    "improvement_ratio": 0.6,
+    "meets_3x_target": false
+  },
+  "reference": {
+    "host": {
+      "name": "Reference host (PRD \u00a711 [ASSUMPTION])",
+      "vcpu": 8,
+      "ram_gib": 32,
+      "disk_gib": 250
+    },
+    "legacy": {
+      "bounds": {
+        "ram": 65,
+        "cpu": 18,
+        "pids": 40,
+        "disk": 602
+      },
+      "max_pairs": 18,
+      "binding_constraint": "cpu",
+      "coldstart_at_max_ms": 32700,
+      "coldstart_sla_met": false
+    },
+    "optimized": {
+      "bounds": {
+        "ram": 37,
+        "cpu": 185,
+        "pids": 40,
+        "disk": 4902
+      },
+      "max_pairs": 37,
+      "binding_constraint": "ram",
+      "coldstart_at_max_ms": 8050,
+      "coldstart_sla_met": true
+    },
+    "improvement_ratio": 2.1,
+    "meets_3x_target": false
+  }
+}
