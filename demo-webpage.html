@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Optimization Platform - Demo Dashboard</title>
+    <style>
+        :root {
+            --black: #000000;
+            --ink: #111111;
+            --grey-900: #1a1a1a;
+            --grey-700: #333333;
+            --grey-500: #666666;
+            --grey-300: #999999;
+            --grey-100: #e6e6e6;
+            --grey-050: #f5f5f5;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--grey-050);
+            color: var(--black);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--white);
+            border: 1px solid var(--black);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: var(--black);
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--grey-500);
+            line-height: 1.6;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-card {
+            background: var(--white);
+            border: 1px solid var(--black);
+            padding: 20px;
+        }
+
+        .status-card h3 {
+            color: var(--grey-500);
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--black);
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            color: var(--grey-500);
+            font-size: 14px;
+        }
+
+        .demo-section {
+            background: var(--white);
+            border: 1px solid var(--black);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .demo-section h2 {
+            color: var(--black);
+            margin-bottom: 20px;
+        }
+
+        .demo-button {
+            background: var(--black);
+            color: var(--white);
+            border: 1px solid var(--black);
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 0;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .demo-button:hover {
+            background: var(--white);
+            color: var(--black);
+        }
+
+        .demo-button:disabled {
+            background: var(--grey-300);
+            border-color: var(--grey-300);
+            color: var(--white);
+            cursor: not-allowed;
+        }
+
+        .demo-output {
+            background: var(--black);
+            color: var(--white);
+            border: 1px solid var(--black);
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .demo-output.show {
+            display: block;
+        }
+
+        .results-section {
+            background: var(--white);
+            border: 1px solid var(--black);
+            padding: 30px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .results-section h2 {
+            color: var(--black);
+            margin-bottom: 20px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            background: var(--grey-050);
+            border: 1px solid var(--grey-700);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .result-item .label {
+            color: var(--grey-500);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .result-item .value {
+            color: var(--black);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .result-item .improvement {
+            color: var(--black);
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .improvement-badge {
+            background: var(--black);
+            color: var(--white);
+            padding: 5px 10px;
+            display: inline-block;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .container-list {
+            margin-top: 20px;
+        }
+
+        .container-item {
+            background: var(--grey-050);
+            border: 1px solid var(--grey-700);
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container-name {
+            font-weight: bold;
+            color: var(--black);
+        }
+
+        .container-status {
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid var(--black);
+        }
+
+        .container-status.healthy {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .container-status.unhealthy {
+            background: var(--white);
+            color: var(--black);
+            border-style: dashed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--grey-100);
+            border-top: 3px solid var(--black);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timestamp {
+            color: var(--grey-500);
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Container Optimization Platform</h1>
+            <p>Cybersecurity Learning Platform - Resource Optimization Demo</p>
+            <div class="timestamp">Last updated: <span id="timestamp">Loading...</span></div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <h3>Active Sessions</h3>
+                <div class="status-value" id="active-sessions">-</div>
+                <div class="status-label">Running sessions</div>
+            </div>
+            <div class="status-card">
+                <h3>Total Containers</h3>
+                <div class="status-value" id="total-containers">-</div>
+                <div class="status-label">Attacker + Target pairs</div>
+            </div>
+            <div class="status-card">
+                <h3>API Status</h3>
+                <div class="status-value" id="api-status">-</div>
+                <div class="status-label">Orchestrator API</div>
+            </div>
+            <div class="status-card">
+                <h3>System Health</h3>
+                <div class="status-value" id="system-health">-</div>
+                <div class="status-label">Overall system status</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2> Live Demonstration</h2>
+            <p style="color: #666666; margin-bottom: 20px;">Click the button below to create a demo session and showcase the optimized container infrastructure.</p>
+            <button class="demo-button" id="demo-button" onclick="startDemo()">Start Demo Session</button>
+            <div id="loading-indicator" class="loading" style="display: none;"></div>
+            <div class="demo-output" id="demo-output"></div>
+        </div>
+
+        <div class="results-section" id="results-section">
+            <h2> Demo Results</h2>
+            <p style="color:#666666;font-size:13px;">All values measured on an 8 vCPU / 8 GiB host with orchestrator/limits.env quotas enforced. Full method and raw JSON: docs/before-after-measurements.md</p>
+            
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="label">Image Size Reduction</div>
+                    <div class="value" id="card-att-size">342 MiB</div>
+                    <div class="improvement">Attacker Image</div>
+                    <div class="timestamp">measured on host</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Image Size Reduction</div>
+                    <div class="value" id="card-tgt-size">275 MiB</div>
+                    <div class="improvement">Target Image</div>
+                    <div class="timestamp">measured on host</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Cold Start Time</div>
+                    <div class="value">4.4 s</div>
+                    <div class="improvement">Cold Start to Healthy</div>
+                    <div class="timestamp">healthcheck-gated</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Memory Efficiency</div>
+                    <div class="value" id="card-ram">45.4 MiB</div>
+                    <div class="improvement">Idle RAM per Pair</div>
+                    <div class="timestamp" id="card-ram-sub">measured: 17.9 + 27.6</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Concurrent Sessions</div>
+                    <div class="value" id="card-conc">1.7×</div>
+                    <div class="improvement">Concurrent Sessions (37 → 62)</div>
+                    <div class="timestamp">measured both sides</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Overall Improvement</div>
+                    <div class="value" id="card-att-red">90.6%</div>
+                    <div class="improvement">Attacker Size Reduction</div>
+                    <div class="timestamp">342 MiB vs 3650 MiB, both measured</div>
+                </div>
+            </div>
+
+            <h3 style="color: #000000; margin: 20px 0 15px 0;">Session Containers</h3>
+            <div class="container-list" id="container-list">
+                <!-- Containers will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        
+        // Update timestamp
+        function updateTimestamp() {
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        }
+
+        // Fetch benchmarks from live API
+        async function fetchBenchmarks() {
+            try {
+                const res = await fetch(`${API_BASE}/benchmarks`);
+                if (res.ok) {
+                    const bm = await res.json();
+                    if (bm.images) {
+                        if (bm.images.opt_attacker) document.getElementById('card-att-size').textContent = bm.images.opt_attacker.size_mib + ' MiB';
+                        if (bm.images.opt_target) document.getElementById('card-tgt-size').textContent = bm.images.opt_target.size_mib + ' MiB';
+                    }
+                    if (bm.image_reduction_pct) {
+                        document.getElementById('card-att-red').textContent = bm.image_reduction_pct.attacker + '%';
+                    }
+                    if (bm.idle_footprint_mib) {
+                        document.getElementById('card-ram').textContent = bm.idle_footprint_mib.optimized.pair_total + ' MiB';
+                        document.getElementById('card-ram-sub').textContent = `measured: ${bm.idle_footprint_mib.optimized.attacker} + ${bm.idle_footprint_mib.optimized.target}`;
+                    }
+                    if (bm.concurrency) {
+                        document.getElementById('card-conc').textContent = bm.concurrency.ratio + '×';
+                    }
+                }
+            } catch (_) {}
+        }
+        
+        // Fetch system status
+        async function fetchSystemStatus() {
+            try {
+                // Fetch sessions
+                const sessionsResponse = await fetch(`${API_BASE}/sessions`, {
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+                if (!sessionsResponse.ok) {
+                    throw new Error(`API returned ${sessionsResponse.status}`);
+                }
+                const sessionsData = await sessionsResponse.json();
+                
+                // Update active sessions
+                document.getElementById('active-sessions').textContent = sessionsData.sessions.length;
+                
+                // Calculate total containers (2 per session)
+                const totalContainers = sessionsData.sessions.length * 2;
+                document.getElementById('total-containers').textContent = totalContainers;
+                
+                // Update API status
+                document.getElementById('api-status').textContent = 'Online';
+                document.getElementById('api-status').style.color = '#000000';
+                
+                // Update system health
+                document.getElementById('system-health').textContent = 'Healthy';
+                document.getElementById('system-health').style.color = '#000000';
+                
+                // Fetch dynamic benchmarks
+                fetchBenchmarks();
+
+                // Update timestamp
+                updateTimestamp();
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('api-status').textContent = 'Offline';
+                document.getElementById('api-status').style.color = '#666666';
+                document.getElementById('system-health').textContent = 'Unknown';
+                document.getElementById('system-health').style.color = '#999999';
+                document.getElementById('active-sessions').textContent = '-';
+                document.getElementById('total-containers').textContent = '-';
+                updateTimestamp();
+            }
+        }
+        
+        // Start demo
+        async function startDemo() {
+            const button = document.getElementById('demo-button');
+            const output = document.getElementById('demo-output');
+            const loading = document.getElementById('loading-indicator');
+            const resultsSection = document.getElementById('results-section');
+            
+            button.disabled = true;
+            loading.style.display = 'inline-block';
+            output.classList.add('show');
+            output.textContent = 'Starting demo session...\n';
+            
+            try {
+                // Create demo session
+                output.textContent += 'Creating demo session...\n';
+                const createResponse = await fetch(`${API_BASE}/sessions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bundle: 'web-exploitation',
+                        id: 'tech-lead-demo'
+                    })
+                });
+                
+                const createData = await createResponse.json();
+                output.textContent += `[OK] Session created: ${createData.session}\n`;
+                output.textContent += `[OK] Bundle: ${createData.bundle}\n`;
+                output.textContent += `[OK] Status: ${createData.status}\n\n`;
+                
+                // Wait a moment for containers to start
+                output.textContent += 'Waiting for containers to initialize...\n';
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Get session status
+                output.textContent += 'Fetching session status...\n';
+                const statusResponse = await fetch(`${API_BASE}/sessions/tech-lead-demo`);
+                const statusData = await statusResponse.json();
+                
+                output.textContent += `[OK] Session status: ${statusData.status}\n`;
+                output.textContent += `[OK] Containers: ${statusData.containers.length}\n\n`;
+                
+                // Display container details
+                output.textContent += 'Container Details:\n';
+                statusData.containers.forEach(container => {
+                    output.textContent += `  - ${container.name}: ${container.state} (${container.health})\n`;
+                });
+                
+                output.textContent += `\nResource Limits:\n`;
+                output.textContent += `  - Attacker: ${statusData.limits.attacker}\n`;
+                output.textContent += `  - Target: ${statusData.limits.target}\n\n`;
+                
+                output.textContent += '[OK] Demo session successfully created and running!\n';
+                
+                // Show results section
+                resultsSection.classList.add('show');
+                
+                // Display containers in results
+                const containerList = document.getElementById('container-list');
+                containerList.innerHTML = '';
+                statusData.containers.forEach(container => {
+                    const containerItem = document.createElement('div');
+                    containerItem.className = 'container-item';
+                    containerItem.innerHTML = `
+                        <span class="container-name">${container.name}</span>
+                        <span class="container-status ${container.health}">${container.health}</span>
+                    `;
+                    containerList.appendChild(containerItem);
+                });
+                
+                // Refresh system status
+                await fetchSystemStatus();
+                
+            } catch (error) {
+                output.textContent += `[X] Error: ${error.message}\n`;
+                output.textContent += 'Make sure the orchestrator API is running on port 8080\n';
+            }
+            
+            button.disabled = false;
+            loading.style.display = 'none';
+        }
+        
+        // Clean up demo session
+        async function cleanupDemo() {
+            try {
+                await fetch(`${API_BASE}/sessions/tech-lead-demo`, {
+                    method: 'DELETE'
+                });
+                console.log('Demo session cleaned up');
+            } catch (error) {
+                console.error('Error cleaning up demo session:', error);
+            }
+        }
+        
+        // Initial status fetch
+        fetchSystemStatus();
+        
+        // Auto-refresh status every 5 seconds
+        setInterval(fetchSystemStatus, 5000);
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', cleanupDemo);
+    </script>
+</body>
+</html>

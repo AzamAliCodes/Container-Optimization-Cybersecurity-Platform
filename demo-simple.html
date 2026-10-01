@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Optimization Demo</title>
+    <style>
+        :root {
+            --black: #000000;
+            --ink: #111111;
+            --grey-900: #1a1a1a;
+            --grey-700: #333333;
+            --grey-500: #666666;
+            --grey-300: #999999;
+            --grey-100: #e6e6e6;
+            --grey-050: #f5f5f5;
+            --white: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--grey-050);
+            color: var(--black);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card {
+            background: var(--white);
+            border: 1px solid var(--black);
+            border-radius: 0;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        h1 { color: var(--black); margin-bottom: 10px; letter-spacing: -0.5px; }
+        h2 { color: var(--black); margin-bottom: 15px; }
+        p { color: var(--grey-500); line-height: 1.6; margin-bottom: 15px; }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .status-item {
+            background: var(--white);
+            border: 1px solid var(--black);
+            padding: 20px;
+            text-align: center;
+        }
+        .status-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--black);
+        }
+        .status-label {
+            color: var(--grey-500);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .button {
+            background: var(--black);
+            color: var(--white);
+            border: 1px solid var(--black);
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 0;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .button:hover { background: var(--white); color: var(--black); }
+        .button:disabled { background: var(--grey-300); border-color: var(--grey-300); cursor: not-allowed; }
+        .output {
+            background: var(--black);
+            color: var(--white);
+            border: 1px solid var(--black);
+            padding: 15px;
+            font-family: monospace;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .results { display: none; margin-top: 20px; }
+        .results.show { display: block; }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .metric {
+            background: var(--grey-050);
+            border: 1px solid var(--grey-700);
+            padding: 15px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--black);
+        }
+        .metric-label {
+            color: var(--grey-500);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1> Container Optimization Platform</h1>
+            <p>Live demonstration of optimized cybersecurity training infrastructure</p>
+            <p><strong>Current Status:</strong> <span id="status">Checking...</span></p>
+        </div>
+
+        <div class="card">
+            <h2> System Metrics</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-value" id="sessions">-</div>
+                    <div class="status-label">Active Sessions</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="containers">-</div>
+                    <div class="status-label">Total Containers</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="api">-</div>
+                    <div class="status-label">API Status</div>
+                </div>
+                <p style="font-size:12px;color:#666666;margin-top:15px;">Measured on an 8 vCPU / 8 GiB host with limits.env quotas enforced. Method and raw JSON: docs/before-after-measurements.md.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2> Live Demo</h2>
+            <p>Click the button to create a demo session and see the optimization in action.</p>
+            <button class="button" id="demoBtn" onclick="runDemo()">Start Demo Session</button>
+            <div class="output" id="output"></div>
+            
+            <div class="results" id="results">
+                <h2>[OK] Demo Results</h2>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="card-att-size">342 MiB</div>
+                        <div class="metric-label">Attacker Image (measured)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-tgt-size">275 MiB</div>
+                        <div class="metric-label">Target Image (measured)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-att-red">90.6%</div>
+                        <div class="metric-label">Attacker Size Reduction</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-tgt-red">71.2%</div>
+                        <div class="metric-label">Target Size Reduction</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">4.4 s</div>
+                        <div class="metric-label">Cold Start to Healthy</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-ram">45.4 MiB</div>
+                        <div class="metric-label">Idle RAM per Pair</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-conc">1.7×</div>
+                        <div class="metric-label">Concurrent Sessions (37 → 62)</div>
+                    </div>
+                </div>
+                <p style="font-size:12px;color:#666666;margin-top:15px;" id="source-note">Measured on host with limits.env quotas enforced. Source: live API (/benchmarks) & docs/before-after-measurements.json.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+        
+        async function fetchBenchmarks() {
+            try {
+                const res = await fetch(`${API_URL}/benchmarks`);
+                if (res.ok) {
+                    const bm = await res.json();
+                    if (bm.images) {
+                        if (bm.images.opt_attacker) document.getElementById('card-att-size').textContent = bm.images.opt_attacker.size_mib + ' MiB';
+                        if (bm.images.opt_target) document.getElementById('card-tgt-size').textContent = bm.images.opt_target.size_mib + ' MiB';
+                    }
+                    if (bm.image_reduction_pct) {
+                        document.getElementById('card-att-red').textContent = bm.image_reduction_pct.attacker + '%';
+                        document.getElementById('card-tgt-red').textContent = bm.image_reduction_pct.target + '%';
+                    }
+                    if (bm.idle_footprint_mib) {
+                        document.getElementById('card-ram').textContent = bm.idle_footprint_mib.optimized.pair_total + ' MiB';
+                    }
+                    if (bm.concurrency) {
+                        document.getElementById('card-conc').textContent = bm.concurrency.ratio + '×';
+                    }
+                    if (bm.host) {
+                        document.getElementById('source-note').textContent = `Host: ${bm.host.vcpu} vCPU / ${bm.host.ram_gib} GiB (${bm.date}). Source: ${bm.source}`;
+                    }
+                }
+            } catch (_) {}
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_URL}/sessions`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('status').textContent = '[OK] Online';
+                    document.getElementById('status').style.color = '#000000';
+                    document.getElementById('sessions').textContent = data.sessions.length;
+                    document.getElementById('containers').textContent = data.sessions.length * 2;
+                    document.getElementById('api').textContent = 'Online';
+                    document.getElementById('api').style.color = '#000000';
+                    fetchBenchmarks();
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                document.getElementById('status').textContent = '[X] Offline';
+                document.getElementById('status').style.color = '#666666';
+                document.getElementById('api').textContent = 'Offline';
+                document.getElementById('api').style.color = '#666666';
+            }
+        }
+        
+        async function runDemo() {
+            const btn = document.getElementById('demoBtn');
+            const output = document.getElementById('output');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            output.style.display = 'block';
+            output.textContent = 'Starting demo...\n';
+            
+            try {
+                output.textContent += 'Creating demo session...\n';
+                const response = await fetch(`${API_URL}/sessions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        bundle: 'web-exploitation',
+                        id: 'tech-lead-demo'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    output.textContent += `[OK] Session created: ${data.session}\n`;
+                    output.textContent += `[OK] Bundle: ${data.bundle}\n`;
+                    output.textContent += `[OK] Status: ${data.status}\n\n`;
+                    
+                    await new Promise(r => setTimeout(r, 2000));
+                    
+                    const statusResponse = await fetch(`${API_URL}/sessions/tech-lead-demo`);
+                    const statusData = await statusResponse.json();
+                    
+                    output.textContent += `Session Status: ${statusData.status}\n`;
+                    output.textContent += `Containers: ${statusData.containers.length}\n`;
+                    output.textContent += `Limits: ${statusData.limits.attacker} / ${statusData.limits.target}\n`;
+                    output.textContent += '\n[OK] Demo completed successfully!';
+                    
+                    results.classList.add('show');
+                } else {
+                    output.textContent += `[X] Error: ${response.status}\n`;
+                }
+            } catch (error) {
+                output.textContent += `[X] Error: ${error.message}\n`;
+                output.textContent += 'Make sure the API is running on port 8080\n';
+            }
+            
+            btn.disabled = false;
+        }
+        
+        // Check status on load
+        checkStatus();
+        setInterval(checkStatus, 5000);
+    </script>
+</body>
+</html>

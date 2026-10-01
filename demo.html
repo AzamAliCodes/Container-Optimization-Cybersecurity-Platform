@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Optimization Demo</title>
+    <style>
+        :root {
+            --black: #000000;
+            --ink: #111111;
+            --grey-900: #1a1a1a;
+            --grey-700: #333333;
+            --grey-500: #666666;
+            --grey-300: #999999;
+            --grey-100: #e6e6e6;
+            --grey-050: #f5f5f5;
+            --white: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--grey-050);
+            color: var(--black);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card {
+            background: var(--white);
+            border: 1px solid var(--black);
+            border-radius: 0;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        h1 { color: var(--black); margin-bottom: 10px; letter-spacing: -0.5px; }
+        h2 { color: var(--black); margin-bottom: 15px; }
+        p { color: var(--grey-500); line-height: 1.6; margin-bottom: 15px; }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .status-item {
+            background: var(--white);
+            border: 1px solid var(--black);
+            padding: 20px;
+            text-align: center;
+        }
+        .status-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--black);
+        }
+        .status-label {
+            color: var(--grey-500);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .button {
+            background: var(--black);
+            color: var(--white);
+            border: 1px solid var(--black);
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 0;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .button:hover { background: var(--white); color: var(--black); }
+        .button:disabled { background: var(--grey-300); border-color: var(--grey-300); cursor: not-allowed; }
+        .output {
+            background: var(--black);
+            color: var(--white);
+            border: 1px solid var(--black);
+            padding: 15px;
+            font-family: monospace;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .results { display: none; margin-top: 20px; }
+        .results.show { display: block; }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .metric {
+            background: var(--grey-050);
+            border: 1px solid var(--grey-700);
+            padding: 15px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--black);
+        }
+        .metric-label {
+            color: var(--grey-500);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .success { color: var(--black); font-weight: bold; }
+        .error { color: var(--grey-500); font-style: italic; }
+        .comparison-table {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border: 1px solid var(--black);
+        }
+        .comparison-table th {
+            background: var(--black);
+            color: var(--white);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
+        }
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--grey-300);
+            color: var(--ink);
+        }
+        .comparison-table tr:hover {
+            background: var(--grey-100);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1> Container Optimization Platform</h1>
+            <p>Live demonstration of optimized cybersecurity training infrastructure</p>
+            <p><strong>API Status:</strong> <span id="apiStatus">Checking...</span></p>
+        </div>
+
+        <div class="card">
+            <h2> System Metrics</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-value" id="sessions">-</div>
+                    <div class="status-label">Active Sessions</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="containers">-</div>
+                    <div class="status-label">Total Containers</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="health">-</div>
+                    <div class="status-label">System Health</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2> Live Demo</h2>
+            <p>Click the button to create a demo session and see the optimization in action.</p>
+            <button class="button" id="demoBtn" onclick="runDemo()">Start Demo Session</button>
+            <div class="output" id="output"></div>
+            
+            <div class="results" id="results">
+                <h2>[OK] Demo Results</h2>
+                
+                <h3 style="color: #000000; margin: 20px 0 15px 0;"> Before vs After Comparison</h3>
+                
+                <div class="comparison-table">
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 12px; text-align: left;">Metric</th>
+                                <th style="padding: 12px; text-align: right;">Before (Legacy)</th>
+                                <th style="padding: 12px; text-align: right;">After (Optimized)</th>
+                                <th style="padding: 12px; text-align: right;">Improvement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: #f5f5f5;">
+                                <td style="padding: 12px; border-bottom: 1px solid #999999;">Attacker Image Size<br><span style="font-size:11px;color:#666666;">both built and measured on host</span></td>
+                                <td id="bm-att-legacy" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">3650 MiB</td>
+                                <td id="bm-att-opt" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">342 MiB</td>
+                                <td id="bm-att-pct" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999; color: #000000; font-weight: bold;">90.6% ↓</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; border-bottom: 1px solid #999999;">Target Image Size<br><span style="font-size:11px;color:#666666;">both built and measured on host</span></td>
+                                <td id="bm-tgt-legacy" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">955 MiB</td>
+                                <td id="bm-tgt-opt" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">275 MiB</td>
+                                <td id="bm-tgt-pct" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999; color: #000000; font-weight: bold;">71.2% ↓</td>
+                            </tr>
+                            <tr style="background: #f5f5f5;">
+                                <td style="padding: 12px; border-bottom: 1px solid #999999;">Cold Start (to healthy)<br><span style="font-size:11px;color:#666666;">optimized measured; legacy declares no HEALTHCHECK</span></td>
+                                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">not measurable</td>
+                                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">4.4 s</td>
+                                <td style="padding: 12px; text-align: right; border-bottom: 1px solid #999999; color: #666666;">n/a</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; border-bottom: 1px solid #999999;">Idle RAM per pair<br><span style="font-size:11px;color:#666666;">measured: 17.9 attacker + 27.6 target</span></td>
+                                <td id="bm-ram-legacy" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">446.5 MiB</td>
+                                <td id="bm-ram-opt" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">45.4 MiB</td>
+                                <td id="bm-ram-pct" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999; color: #000000; font-weight: bold;">89.8% ↓</td>
+                            </tr>
+                            <tr style="background: #f5f5f5;">
+                                <td style="padding: 12px; border-bottom: 1px solid #999999;">Max pairs (8 GB host)<br><span style="font-size:11px;color:#666666;">measured both sides on this host</span></td>
+                                <td id="bm-conc-legacy" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">37 pairs</td>
+                                <td id="bm-conc-opt" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999;">62 pairs</td>
+                                <td id="bm-conc-ratio" style="padding: 12px; text-align: right; border-bottom: 1px solid #999999; color: #000000; font-weight: bold;">1.7× ↑</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 style="color: #000000; margin: 20px 0 15px 0;"> Key Achievements</h3>
+                <div class="metric-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="card-att-size">342 MiB</div>
+                        <div class="metric-label">Attacker Image (measured)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-tgt-size">275 MiB</div>
+                        <div class="metric-label">Target Image (measured)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-att-red">90.6%</div>
+                        <div class="metric-label">Attacker Size Reduction</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-tgt-red">71.2%</div>
+                        <div class="metric-label">Target Size Reduction</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">4.4 s</div>
+                        <div class="metric-label">Cold Start to Healthy</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-ram">45.4 MiB</div>
+                        <div class="metric-label">Idle RAM per Pair</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="card-conc">1.7×</div>
+                        <div class="metric-label">Concurrent Sessions (37 → 62)</div>
+                    </div>
+                </div>
+                <p style="font-size:12px;color:#666666;margin-top:15px;" id="bm-source-note">
+                    Data source: live API (/benchmarks) & docs/before-after-measurements.json.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+        
+        async function fetchBenchmarks() {
+            try {
+                const res = await fetch(`${API_URL}/benchmarks`);
+                if (res.ok) {
+                    const bm = await res.json();
+                    if (bm.images) {
+                        if (bm.images.legacy_attacker) document.getElementById('bm-att-legacy').textContent = bm.images.legacy_attacker.size_mib + ' MiB';
+                        if (bm.images.opt_attacker) {
+                            document.getElementById('bm-att-opt').textContent = bm.images.opt_attacker.size_mib + ' MiB';
+                            document.getElementById('card-att-size').textContent = bm.images.opt_attacker.size_mib + ' MiB';
+                        }
+                        if (bm.images.legacy_target) document.getElementById('bm-tgt-legacy').textContent = bm.images.legacy_target.size_mib + ' MiB';
+                        if (bm.images.opt_target) {
+                            document.getElementById('bm-tgt-opt').textContent = bm.images.opt_target.size_mib + ' MiB';
+                            document.getElementById('card-tgt-size').textContent = bm.images.opt_target.size_mib + ' MiB';
+                        }
+                    }
+                    if (bm.image_reduction_pct) {
+                        document.getElementById('bm-att-pct').textContent = bm.image_reduction_pct.attacker + '% ↓';
+                        document.getElementById('card-att-red').textContent = bm.image_reduction_pct.attacker + '%';
+                        document.getElementById('bm-tgt-pct').textContent = bm.image_reduction_pct.target + '% ↓';
+                        document.getElementById('card-tgt-red').textContent = bm.image_reduction_pct.target + '%';
+                    }
+                    if (bm.idle_footprint_mib) {
+                        document.getElementById('bm-ram-legacy').textContent = bm.idle_footprint_mib.legacy.pair_total + ' MiB';
+                        document.getElementById('bm-ram-opt').textContent = bm.idle_footprint_mib.optimized.pair_total + ' MiB';
+                        document.getElementById('card-ram').textContent = bm.idle_footprint_mib.optimized.pair_total + ' MiB';
+                        document.getElementById('bm-ram-pct').textContent = bm.idle_footprint_mib.pair_reduction_pct + '% ↓';
+                    }
+                    if (bm.concurrency) {
+                        document.getElementById('bm-conc-legacy').textContent = bm.concurrency.legacy_max_stable_pairs + ' pairs';
+                        document.getElementById('bm-conc-opt').textContent = bm.concurrency.optimized_max_stable_pairs + ' pairs';
+                        document.getElementById('bm-conc-ratio').textContent = bm.concurrency.ratio + '× ↑';
+                        document.getElementById('card-conc').textContent = bm.concurrency.ratio + '×';
+                    }
+                    const note = document.getElementById('bm-source-note');
+                    if (note && bm.host) {
+                        note.textContent = `Measured on ${bm.host.vcpu} vCPU / ${bm.host.ram_gib} GiB host (${bm.date}). Source: ${bm.source}`;
+                    }
+                }
+            } catch (e) {
+                console.log('Using baseline measurements cache (API benchmarks offline)');
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_URL}/sessions`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('apiStatus').innerHTML = '<span class="success">[OK] Online</span>';
+                    document.getElementById('sessions').textContent = data.sessions.length;
+                    document.getElementById('containers').textContent = data.sessions.length * 2;
+                    document.getElementById('health').innerHTML = '<span class="success">Healthy</span>';
+                    fetchBenchmarks();
+                } else {
+                    throw new Error(`API returned ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+                document.getElementById('apiStatus').innerHTML = '<span class="error">[X] Offline</span>';
+                document.getElementById('health').innerHTML = '<span class="error">Unknown</span>';
+                document.getElementById('sessions').textContent = '-';
+                document.getElementById('containers').textContent = '-';
+            }
+        }
+        
+        async function runDemo() {
+            const btn = document.getElementById('demoBtn');
+            const output = document.getElementById('output');
+            const results = document.getElementById('results');
+            
+            btn.disabled = true;
+            output.style.display = 'block';
+            output.textContent = 'Starting demo...\n';
+            
+            try {
+                // Clean up any existing demo session first
+                output.textContent += 'Cleaning up any existing demo session...\n';
+                try {
+                    await fetch(`${API_URL}/sessions/tech-lead-demo`, {
+                        method: 'DELETE'
+                    });
+                    output.textContent += '[OK] Cleanup completed\n';
+                } catch (e) {
+                    output.textContent += '[OK] No existing session to clean\n';
+                }
+                
+                output.textContent += 'Creating demo session...\n';
+                
+                const response = await fetch(`${API_URL}/sessions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bundle: 'web-exploitation',
+                        id: 'tech-lead-demo'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    output.textContent += `[OK] Session created: ${data.session}\n`;
+                    output.textContent += `[OK] Bundle: ${data.bundle}\n`;
+                    output.textContent += `[OK] Status: ${data.status}\n\n`;
+                    
+                    // Wait for containers to start
+                    output.textContent += 'Waiting for containers to initialize...\n';
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    
+                    // Get session status
+                    const statusResponse = await fetch(`${API_URL}/sessions/tech-lead-demo`);
+                    const statusData = await statusResponse.json();
+                    
+                    output.textContent += `Session Status: ${statusData.status}\n`;
+                    output.textContent += `Containers: ${statusData.containers.length}\n`;
+                    
+                    statusData.containers.forEach(container => {
+                        output.textContent += `  - ${container.name}: ${container.state} (${container.health})\n`;
+                    });
+                    
+                    output.textContent += `\nResource Limits:\n`;
+                    output.textContent += `  - Attacker: ${statusData.limits.attacker}\n`;
+                    output.textContent += `  - Target: ${statusData.limits.target}\n`;
+                    output.textContent += '\n[OK] Demo completed successfully!';
+                    
+                    results.classList.add('show');
+                } else {
+                    const errorText = await response.text();
+                    output.textContent += `[X] Error: ${response.status}\n`;
+                    output.textContent += `Details: ${errorText}\n`;
+                }
+            } catch (error) {
+                output.textContent += `[X] Error: ${error.message}\n`;
+                output.textContent += 'Make sure the API is running on port 8080\n';
+                output.textContent += 'Try refreshing the page and check browser console for details\n';
+            }
+            
+            btn.disabled = false;
+        }
+        
+        // Check status on load
+        checkStatus();
+        
+        // Auto-refresh every 5 seconds
+        setInterval(checkStatus, 5000);
+    </script>
+</body>
+</html>
