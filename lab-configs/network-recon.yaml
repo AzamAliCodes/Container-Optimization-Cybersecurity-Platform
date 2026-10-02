@@ -1,0 +1,22 @@
+# lab-configs/network-recon.yaml — per-bundle lab config (FR-03, FR-18).
+version: 1
+
+attacker_bundle: network-recon
+target_app: vuln-webapp-lite
+
+labs:
+  - lab_id: recon-scan-001
+    needs_msfcore: false              # nmap-first; msfconsole lazy-started on demand
+    msf_start_deadline_s: 30          # metasploit reload cost (measured in Phase 5 G1)
+    lazy_start_ok: true
+    ssh_enabled: false
+  - lab_id: pivot-002                 # multi-host pivoting lab: the ONE lab type
+    needs_msfconsole: false           #   that genuinely needs an SSH daemon in the
+    msf_start_deadline_s: 30          #   attacker box (learner SSHes target->attacker)
+    lazy_start_ok: true
+    ssh_enabled: true                 # FR-18 per-lab opt-in -> LAB_SSH_ENABLED=1
+
+validation_rule: >
+  ssh_enabled: true above is the documented example of the FR-18 opt-in path:
+  provision.sh injects LAB_SSH_ENABLED=1 only for sessions of this lab type;
+  entrypoint double-guards, so the default fleet never runs sshd.

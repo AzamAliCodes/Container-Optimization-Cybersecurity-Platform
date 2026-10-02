@@ -1,0 +1,42 @@
+# lab-configs — FR-18 lazy-start validation input + per-lab SSH opt-in schema
+#
+# FR-18 requires msfconsole NOT to be preloaded at session start, and Phase 0 exit
+# criteria require validating that assumption against a real lab inventory.
+# No inventory exists yet: this stub defines the schema the Lab Content Team must fill
+# so `lazy_start_ok` can be evaluated. Until real entries exist, FR-18 sign-off is
+# BLOCKED (see docs/decisions.md "Phase 0 exit criteria status").
+#
+# Schema:
+#   lab_id:            unique lab identifier
+#   attacker_bundle:   tool bundle required at session start
+#   target_app:        vulnerable target application
+#   needs_msfcore:     true  -> lab requires msfconsole resident from t=0
+#                        false -> msfconsole may start lazily on first msfcall
+#   msf_start_deadline_s: if lazy, max seconds to first msfconsole availability
+#   lazy_start_ok:     agreed verdict for FR-18 (must be true for every lab before
+#                        the preload can be removed without regression)
+#   ssh_enabled:       FR-18 per-lab SSH opt-in (DEFAULT false). When true, the
+#                        orchestrator passes LAB_SSH_ENABLED=1 into the attacker
+#                        container and images/shared/ssh-briefing.sh starts sshd
+#                        at boot. Resolution order (orchestrator/provision.sh):
+#                        explicit env override > lab-config > default off.
+#                        Per-bundle declarations live in lab-configs/<bundle>.yaml
+#                        (see network-recon.yaml for the one opted-in lab type).
+
+version: 1
+status: STUB-AWAITING-LAB-INVENTORY
+
+labs: []
+# Example entry (illustrative, not real data):
+# - lab_id: sqli-001
+#   attacker_bundle: sqli-bundle
+#   target_app: dvwa-lite
+#   needs_msfcore: false
+#   msf_start_deadline_s: 10
+#   lazy_start_ok: true
+
+validation_rule: >
+  FR-18 may be signed off only when every lab has lazy_start_ok == true
+  AND a measured msfconsole cold-start within msf_start_deadline_s,
+  AND (for canary labs) the drop process proved msfconsole returns usable
+  in 8/8 sessions. See PRD FR-18.
