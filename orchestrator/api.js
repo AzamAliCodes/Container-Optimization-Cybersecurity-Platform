@@ -349,6 +349,9 @@ app.get('/sessions/:id/events', (req, res) => {
   res.json({ session: sid, events });
 });
 
+// root healthcheck
+app.get('/', (_req, res) => res.json({ ok: true, phase: 3 }));
+
 // ---- listen (skipped under `node --test`) -----------------------------------
 const PORT = +(process.env.PORT || 8080);
 const HOST = process.env.HOST || '0.0.0.0';

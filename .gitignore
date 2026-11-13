@@ -27,3 +27,12 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+# brag launch video output
+brag-output/
+brag*/
+brag*.*
+*.mp4
+*.mov
+*.webm
+*.mp3
+*.wav
